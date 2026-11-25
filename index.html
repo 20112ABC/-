@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="오늘의 별자리 운세">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>오늘의 별자리 운세</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #FFF9F2 0%, #FDF2F5 50%, #F3F0FA 100%);
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --primary: #FF9EBB;
+      --primary-hover: #FF85A9;
+      --secondary: #B8B5FF;
+      --secondary-hover: #A39FFF;
+      --accent-cream: #FFF5E4;
+      --text-main: #4A404F;
+      --text-sub: #7D7083;
+      --shadow-soft: 0 12px 32px rgba(180, 150, 175, 0.18);
+      --border-soft: 2px solid #F7E6EC;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Gowun Dodum', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      line-height: 1.7;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border-radius: 32px;
+      padding: 32px 26px;
+      box-shadow: var(--shadow-soft);
+      border: var(--border-soft);
+      position: relative;
+      overflow: hidden;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .header-emoji {
+      font-size: 52px;
+      text-align: center;
+      margin-bottom: 10px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    h1, h2, .cute-title {
+      font-family: 'Jua', sans-serif;
+      font-weight: 400;
+      color: #5A4963;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-sub);
+      font-size: 15px;
+      margin-bottom: 26px;
+    }
+
+    .input-group {
+      margin-bottom: 18px;
+    }
+
+    .input-label {
+      display: block;
+      font-family: 'Jua', sans-serif;
+      font-size: 17px;
+      color: #6B5876;
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+
+    .text-input, .select-input {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 20px;
+      border: 2px solid #F2DCE4;
+      background: #FFFDFB;
+      font-family: 'Gowun Dodum', sans-serif;
+      font-size: 16px;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .text-input:focus, .select-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(255, 158, 187, 0.2);
+    }
+
+    .date-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .error-msg {
+      color: #E06D8B;
+      font-size: 14px;
+      text-align: center;
+      min-height: 22px;
+      margin-bottom: 10px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #FFA6C1 0%, #FF8FB1 100%);
+      color: white;
+      font-family: 'Jua', sans-serif;
+      font-size: 21px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(255, 143, 177, 0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(255, 143, 177, 0.45);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    /* Screen 2: Zodiac Result */
+    .zodiac-badge {
+      display: inline-block;
+      background: #FFF0F5;
+      color: #D96B8A;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .zodiac-card {
+      background: #FFFDF9;
+      border: 2px solid #F7E8EE;
+      border-radius: 26px;
+      padding: 24px 20px;
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .zodiac-symbol {
+      font-size: 64px;
+      margin-bottom: 6px;
+      display: block;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .zodiac-name {
+      font-family: 'Jua', sans-serif;
+      font-size: 26px;
+      color: #5A4963;
+      margin-bottom: 4px;
+    }
+
+    .zodiac-date {
+      font-size: 14px;
+      color: var(--text-sub);
+      margin-bottom: 14px;
+    }
+
+    .trait-tags {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .trait-tag {
+      background: #F4F1FF;
+      color: #776BB3;
+      padding: 5px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+    }
+
+    .zodiac-desc {
+      font-size: 15.5px;
+      color: #554A5C;
+      text-align: left;
+      background: #FFF7FA;
+      padding: 16px;
+      border-radius: 18px;
+      line-height: 1.75;
+    }
+
+    .btn-fortune-big {
+      width: 100%;
+      padding: 20px;
+      border: 3px solid #FFE0EA;
+      border-radius: 28px;
+      background: linear-gradient(135deg, #FF9EBB 0%, #FFB5C8 100%);
+      color: #FFFFFF;
+      font-family: 'Jua', sans-serif;
+      font-size: 26px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(255, 158, 187, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-fortune-big:hover {
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 14px 28px rgba(255, 158, 187, 0.5);
+    }
+
+    /* Screen 3: Category Selection */
+    .category-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .cat-btn {
+      background: #FFFDFB;
+      border: 2px solid #F3E2EA;
+      border-radius: 22px;
+      padding: 16px 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cat-btn:hover {
+      background: #FFF3F7;
+      border-color: #FFA6C1;
+      transform: translateY(-2px);
+    }
+
+    .cat-btn.full-width {
+      grid-column: span 2;
+      background: #FFF8F2;
+      border-color: #F5DEC9;
+    }
+
+    .cat-btn.full-width:hover {
+      background: #FFF0E3;
+      border-color: #F2B880;
+    }
+
+    .cat-icon {
+      font-size: 28px;
+    }
+
+    .cat-title {
+      font-family: 'Jua', sans-serif;
+      font-size: 17px;
+      color: #5A4963;
+    }
+
+    /* Screen 4: Fortune Detail */
+    .fortune-box {
+      background: #FFFDF9;
+      border: 2px solid #F5E4EC;
+      border-radius: 26px;
+      padding: 24px 20px;
+      margin-bottom: 20px;
+    }
+
+    .fortune-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .fortune-header-icon {
+      font-size: 30px;
+    }
+
+    .fortune-header-title {
+      font-family: 'Jua', sans-serif;
+      font-size: 23px;
+      color: #5A4963;
+    }
+
+    .fortune-text {
+      font-size: 16px;
+      color: #4D4254;
+      line-height: 1.85;
+      white-space: pre-line;
+      background: #FFF8FB;
+      padding: 18px;
+      border-radius: 20px;
+    }
+
+    .btn-more-cozy {
+      width: 100%;
+      padding: 17px;
+      border: 2.5px dashed #D8CCF8;
+      border-radius: 26px;
+      background: #F7F4FF;
+      color: #6B5CA5;
+      font-family: 'Jua', sans-serif;
+      font-size: 21px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-more-cozy:hover {
+      background: #EFEAFF;
+      border-color: #B4A2F0;
+      transform: translateY(-2px);
+    }
+
+    .link-reset {
+      display: block;
+      margin: 14px auto 0;
+      background: none;
+      border: none;
+      color: #9A8DA1;
+      font-family: 'Gowun Dodum', sans-serif;
+      font-size: 14px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 1단계: 닉네임 및 생일 입력 -->
+    <div id="screen-input" class="screen active">
+      <div class="header-emoji">🌙✨</div>
+      <h1>포근한 오늘의 별자리 운세</h1>
+      <p class="subtitle">닉네임과 생일을 알려주시면 다정한 별의 이야기를 들려드릴게요</p>
+
+      <div class="input-group">
+        <label class="input-label" for="nickname">어떻게 불러드릴까요? (닉네임)</label>
+        <input type="text" id="nickname" class="text-input" placeholder="예: 달빛토끼, 민지, 별이" maxlength="12">
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">생일을 선택해 주세요</label>
+        <div class="date-row">
+          <select id="birth-month" class="select-input">
+            <option value="">월 선택</option>
+          </select>
+          <select id="birth-day" class="select-input">
+            <option value="">일 선택</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="error-msg" class="error-msg"></div>
+
+      <button class="btn-primary" onclick="startFortune()">✨ 시작하기</button>
+    </div>
+
+    <!-- 2단계: 별자리 & 성격 특징 -->
+    <div id="screen-zodiac" class="screen">
+      <div style="text-align: center;">
+        <span class="zodiac-badge" id="user-greeting-badge">반가워요!</span>
+      </div>
+      <div class="zodiac-card">
+        <span class="zodiac-symbol" id="zodiac-symbol">♈</span>
+        <div class="zodiac-name" id="zodiac-name">양자리</div>
+        <div class="zodiac-date" id="zodiac-date">3월 21일 ~ 4월 19일</div>
+        <div class="trait-tags" id="zodiac-tags"></div>
+        <p class="zodiac-desc" id="zodiac-desc"></p>
+      </div>
+
+      <button class="btn-fortune-big" onclick="goToCategories()">
+        <span>🔮</span>
+        <span>오늘의 운세</span>
+        <span>✨</span>
+      </button>
+      <button class="link-reset" onclick="resetApp()">닉네임 · 생일 다시 입력하기</button>
+    </div>
+
+    <!-- 3단계: 운세 선택지 -->
+    <div id="screen-categories" class="screen">
+      <div class="header-emoji" style="font-size: 40px;">🍀</div>
+      <h2 id="category-greeting" style="font-size: 24px; margin-bottom: 6px;">오늘 어떤 운세가 궁금하신가요?</h2>
+      <p class="subtitle" style="margin-bottom: 20px;">보고 싶은 카드를 살짝 눌러보세요</p>
+
+      <div class="category-grid">
+        <button class="cat-btn" onclick="showFortune('love')">
+          <span class="cat-icon">💕</span>
+          <span class="cat-title">연애운</span>
+        </button>
+        <button class="cat-btn" onclick="showFortune('money')">
+          <span class="cat-icon">💰</span>
+          <span class="cat-title">금전운</span>
+        </button>
+        <button class="cat-btn" onclick="showFortune('study')">
+          <span class="cat-icon">📚</span>
+          <span class="cat-title">학업운</span>
+        </button>
+        <button class="cat-btn" onclick="showFortune('health')">
+          <span class="cat-icon">🌿</span>
+          <span class="cat-title">건강운</span>
+        </button>
+        <button class="cat-btn" onclick="showFortune('events')">
+          <span class="cat-icon">🎁</span>
+          <span class="cat-title">오늘 생길 수도 있는 일들</span>
+        </button>
+        <button class="cat-btn" onclick="showFortune('items')">
+          <span class="cat-icon">🧸</span>
+          <span class="cat-title">오늘 있으면 좋은 물건들</span>
+        </button>
+        <button class="cat-btn full-width" onclick="showFortune('feedback')">
+          <span class="cat-icon">💌</span>
+          <span class="cat-title">피드백 (이런 행동은 삼가주세요!)</span>
+        </button>
+      </div>
+
+      <button class="link-reset" onclick="backToZodiac()">내 별자리 설명 다시 보기</button>
+    </div>
+
+    <!-- 4단계: 선택한 운세 상세 -->
+    <div id="screen-detail" class="screen">
+      <div class="fortune-box">
+        <div class="fortune-header">
+          <span class="fortune-header-icon" id="detail-icon">💕</span>
+          <span class="fortune-header-title" id="detail-title">오늘의 연애운</span>
+        </div>
+        <div class="fortune-text" id="detail-text"></div>
+      </div>
+
+      <button class="btn-more-cozy" onclick="goToCategories()">
+        <span>🌷</span>
+        <span>다른 운 더보기</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const monthSelect = document.getElementById('birth-month');
+    const daySelect = document.getElementById('birth-day');
+
+    for (let m = 1; m <= 12; m++) {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m + '월';
+      monthSelect.appendChild(opt);
+    }
+
+    for (let d = 1; d <= 31; d++) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d + '일';
+      daySelect.appendChild(opt);
+    }
+
+    const ZODIACS = [
+      {
+        name: '물병자리', symbol: '♒', range: '1월 20일 ~ 2월 18일',
+        tags: ['#독창적인', '#자유로운영혼', '#다정한지성'],
+        desc: '남들과 다른 시선으로 세상을 바라보는 반짝이는 아이디어 뱅크예요. 친구들의 이야기를 편견 없이 잘 들어주면서도, 자신만의 소중한 가치관과 자유를 지킬 줄 아는 매력적인 사람입니다.'
+      },
+      {
+        name: '물고기자리', symbol: '♓', range: '2월 19일 ~ 3월 20일',
+        tags: ['#섬세한감성', '#따뜻한공감', '#몽글몽글상상력'],
+        desc: '주변 사람들의 작은 기분 변화도 단번에 알아채는 부드럽고 다정한 마음씨를 지녔어요. 예술적 감수성과 상상력이 풍부해서 함께 있으면 마음이 포근해지는 힐링 같은 존재랍니다.'
+      },
+      {
+        name: '양자리', symbol: '♈', range: '3월 21일 ~ 4월 19일',
+        tags: ['#맑은에너지', '#솔직담백', '#용기있는도전'],
+        desc: '하고 싶은 일이 생기면 망설임 없이 발걸음을 내딛는 맑고 뜨거운 에너지의 소유자예요. 뒤끝 없이 솔직하고 주변 분위기까지 환하게 밝히는 사랑스러운 리더십을 가지고 있습니다.'
+      },
+      {
+        name: '황소자리', symbol: '♉', range: '4월 20일 ~ 5월 20일',
+        tags: ['#든든한온기', '#꾸준함의힘', '#소확행장인'],
+        desc: '한 번 마음을 주면 변치 않고 곁을 지켜주는 믿음직스럽고 차분한 사람이에요. 맛있는 음식, 포근한 향기처럼 일상의 작고 확실한 행복을 누구보다 잘 즐길 줄 아는 감각을 지녔습니다.'
+      },
+      {
+        name: '쌍둥이자리', symbol: '♊', range: '5월 21일 ~ 6월 21일',
+        tags: ['#재치만점', '#호기심가득', '#유쾌한대화'],
+        desc: '반짝이는 호기심과 센스 있는 말솜씨로 어디서든 즐거운 웃음을 만들어내는 분위기 메이커예요. 새로운 정보와 배움을 빠르게 흡수하며 다재다능한 매력을 뽐냅니다.'
+      },
+      {
+        name: '게자리', symbol: '♋', range: '6월 22일 ~ 7월 22일',
+        tags: ['#포근한배려', '#섬세한다정함', '#내사람챙기기'],
+        desc: '소중한 사람들을 세심하게 챙기고 지켜주려는 따뜻한 모성애·부성애적 감성을 가졌어요. 겉으로는 수줍어 보여도 마음이 열리면 누구보다 깊은 애정과 진심을 나누는 사람입니다.'
+      },
+      {
+        name: '사자자리', symbol: '♌', range: '7월 23일 ~ 8월 22일',
+        tags: ['#햇살같은존재', '#당당한매력', '#따뜻한의리'],
+        desc: '자신감 넘치는 미소와 화끈한 배려로 주변 사람들에게 든든한 힘을 주는 햇살 같은 사람이에요. 칭찬과 응원에 약하고, 자신이 아끼는 사람에게는 아낌없이 마음을 베풉니다.'
+      },
+      {
+        name: '처녀자리', symbol: '♍', range: '8월 23일 ~ 9월 22일',
+        tags: ['#섬세한센스', '#차분한완벽주의', '#사려깊음'],
+        desc: '작은 디테일 하나도 놓치지 않고 꼼꼼하게 챙기는 깔끔하고 사려 깊은 사람이에요. 말보다 행동으로 진심을 보여주며, 주변이 어수선할 때 가장 현명하게 정돈해 주는 해결사입니다.'
+      },
+      {
+        name: '천칭자리', symbol: '♎', range: '9월 23일 ~ 10월 22일',
+        tags: ['#우아한균형', '#다정한매너', '#아름다운감각'],
+        desc: '상대방을 편안하게 만드는 세련된 매너와 조화로운 성품을 지녔어요. 갈등 상황에서도 양쪽의 입장을 부드럽게 이어주며, 예쁘고 감각적인 것들을 알아보는 안목이 뛰어납니다.'
+      },
+      {
+        name: '전갈자리', symbol: '♏', range: '10월 23일 ~ 11월 22일',
+        tags: ['#깊은진심', '#예리한직관', '#반전다정함'],
+        desc: '한 번 집중하면 끝까지 해내는 놀라운 몰입력과 깊은 통찰력을 가진 사람이에요. 조용하지만 강한 내면을 지녔고, 진짜 내 사람에게는 누구보다 뜨겁고 헌신적인 다정함을 보여줍니다.'
+      },
+      {
+        name: '사수자리', symbol: '♐', range: '11월 23일 ~ 12월 21일',
+        tags: ['#긍정에너지', '#모험과설렘', '#솔직한자유인'],
+        desc: '어디로 튈지 모르는 유쾌함과 맑은 낙천성으로 주변까지 기분 좋게 만드는 사람이에요. 새로운 경험과 배움을 두려워하지 않고, 힘든 순간에도 희망을 찾아내는 멋진 힘을 가졌습니다.'
+      },
+      {
+        name: '염소자리', symbol: '♑', range: '12월 22일 ~ 1월 19일',
+        tags: ['#차분한성실함', '#믿음직한버팀목', '#은근한유머'],
+        desc: '목표를 세우면 묵묵히 한 걸음씩 이루어내는 단단하고 성실한 내면의 소유자예요. 겉으로는 진중해 보이지만 친해지면 은근한 유머 감각과 따뜻한 인간미로 큰 신뢰를 줍니다.'
+      }
+    ];
+
+    let currentNickname = '';
+    let currentZodiac = ZODIACS[0];
+
+    function getZodiac(month, day) {
+      if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return ZODIACS[0];
+      if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return ZODIACS[1];
+      if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return ZODIACS[2];
+      if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return ZODIACS[3];
+      if ((month === 5 && day >= 21) || (month === 6 && day <= 21)) return ZODIACS[4];
+      if ((month === 6 && day >= 22) || (month === 7 && day <= 22)) return ZODIACS[5];
+      if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return ZODIACS[6];
+      if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return ZODIACS[7];
+      if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return ZODIACS[8];
+      if ((month === 10 && day >= 23) || (month === 11 && day <= 22)) return ZODIACS[9];
+      if ((month === 11 && day >= 23) || (month === 12 && day <= 21)) return ZODIACS[10];
+      return ZODIACS[11];
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function startFortune() {
+      const nickInput = document.getElementById('nickname').value.trim();
+      const month = parseInt(monthSelect.value, 10);
+      const day = parseInt(daySelect.value, 10);
+      const errorMsg = document.getElementById('error-msg');
+
+      if (!nickInput) {
+        errorMsg.textContent = '닉네임을 먼저 적어주세요! 다정하게 불러드릴게요 🌸';
+        return;
+      }
+      if (!month || !day) {
+        errorMsg.textContent = '생일의 월과 일을 모두 선택해 주세요 🌙';
+        return;
+      }
+
+      errorMsg.textContent = '';
+      currentNickname = nickInput;
+      currentZodiac = getZodiac(month, day);
+
+      document.getElementById('user-greeting-badge').textContent =
+        `${currentNickname}님의 별자리는 ${currentZodiac.name}예요!`;
+      document.getElementById('zodiac-symbol').textContent = currentZodiac.symbol;
+      document.getElementById('zodiac-name').textContent = currentZodiac.name;
+      document.getElementById('zodiac-date').textContent = currentZodiac.range;
+
+      const tagsEl = document.getElementById('zodiac-tags');
+      tagsEl.innerHTML = '';
+      currentZodiac.tags.forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'trait-tag';
+        span.textContent = tag;
+        tagsEl.appendChild(span);
+      });
+
+      document.getElementById('zodiac-desc').textContent =
+        `${currentNickname}님은 ${currentZodiac.desc}`;
+
+      showScreen('screen-zodiac');
+    }
+
+    function goToCategories() {
+      document.getElementById('category-greeting').textContent =
+        `${currentNickname}님, 오늘 어떤 운세가 궁금하신가요?`;
+      showScreen('screen-categories');
+    }
+
+    function backToZodiac() {
+      showScreen('screen-zodiac');
+    }
+
+    function resetApp() {
+      showScreen('screen-input');
+    }
+
+    function getSeedIndex(categoryKey) {
+      const today = new Date();
+      const dateNum = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+      let hash = dateNum + currentZodiac.name.charCodeAt(0) * 17;
+      for (let i = 0; i < categoryKey.length; i++) {
+        hash += categoryKey.charCodeAt(i) * (i + 3);
+      }
+      return Math.abs(hash) % 2;
+    }
+
+    function showFortune(category) {
+      const n = currentNickname;
+      const z = currentZodiac.name;
+      const idx = getSeedIndex(category);
+
+      const contentMap = {
+        love: {
+          icon: '💕',
+          title: `${n}님의 오늘 연애운`,
+          texts: [
+            `${n}님, 오늘은 마음속에 잔잔하고 따뜻한 설렘이 피어나는 날이에요.
+${z} 특유의 다정한 분위기가 자연스럽게 드러나면서 주변 사람들의 시선을 기분 좋게 끌어당깁니다.
+평소 눈길이 가던 사람과 사소한 계기로 대화를 나누거나, 가까운 사람에게서 생각지 못한 다정한 표현을 들을 수 있어요.
+억지로 꾸미려 하기보다 ${n}님 본연의 편안한 미소를 보여줄 때 가장 빛이 납니다.
+오늘 먼저 건네는 짧은 안부 인사가 두 사람 사이의 거리를 한 뼘 더 가깝게 만들어 줄 거예요.`,
+            `${n}님, 오늘은 서로의 마음을 차분히 이해하고 보듬어 주기에 참 좋은 하루예요.
+작은 배려 하나가 상대방의 기억에 오래도록 포근하게 남는 흐름이 들어와 있습니다.
+연인이 있다면 소소한 산책이나 달콤한 디저트를 나누며 평온한 시간을 보내기 좋고, 솔로라면 오랜 지인이나 취미 모임에서 마음이 잘 통하는 인연을 발견할 수 있어요.
+서두르기보다는 상대의 이야기에 귀를 기울이며 고개를 끄덕여 주세요.
+${n}님의 따뜻한 공감이 오늘 가장 큰 매력 포인트가 되어줄 거예요.`
+          ]
+        },
+        money: {
+          icon: '💰',
+          title: `${n}님의 오늘 금전운`,
+          texts: [
+            `${n}님, 오늘은 지출과 수입의 균형이 아주 안정적으로 잡히는 기분 좋은 날이에요.
+충동적인 소비보다는 꼭 필요한 곳에만 알뜰하게 쓰게 되어 하루를 마칠 때 뿌듯함이 큽니다.
+평소 눈여겨보던 물건을 합리적인 가격에 발견하거나, 작은 이벤트·쿠폰 같은 소소한 행운이 찾아올 수도 있어요.
+큰돈을 한 번에 굴리기보다는 지금 가진 자산을 차분히 점검하고 정리하는 데 에너지를 써보세요.
+오늘 아낀 작은 금액이 조만간 ${n}님에게 기분 좋은 여유로 돌아올 거예요.`,
+            `${n}님, 오늘은 금전적인 흐름에 맑은 햇살이 비추며 실속을 챙길 수 있는 하루예요.
+주변 사람에게 베푼 작은 호의나 성실함이 의외의 보답이나 기분 좋은 선물로 돌아올 가능성이 높습니다.
+가계부나 소비 내역을 가볍게 훑어보며 불필요한 구독이나 지출을 정리하면 운의 흐름이 더욱 맑아져요.
+당장 급하지 않은 쇼핑은 장바구니에 하루만 담아두고 내일 다시 살펴보는 지혜를 발휘해 보세요.
+차분한 선택이 ${n}님의 지갑을 든든하게 지켜줄 것입니다.`
+          ]
+        },
+        study: {
+          icon: '📚',
+          title: `${n}님의 오늘 학업운`,
+          texts: [
+            `${n}님, 오늘은 머릿속이 맑게 정돈되어 집중력이 평소보다 한층 높아지는 날이에요.
+${z}의 강점이 빛을 발하면서, 헷갈리던 개념이나 막막했던 과제도 차근차근 풀려나가는 기분을 느낄 수 있습니다.
+처음부터 완벽하게 해내려고 부담을 갖기보다, 오늘 할 분량을 작게 나누어 하나씩 체크해 나가보세요.
+중간에 5분 정도 창문을 열고 바람을 쐬며 가볍게 스트레칭을 하면 효율이 배로 올라갑니다.
+오늘 쌓아 올린 꾸준한 한 페이지가 ${n}님에게 큰 자신감이 되어줄 거예요.`,
+            `${n}님, 오늘은 이해력과 기억력이 조화롭게 어우러져 배움의 즐거움을 느끼기 좋은 하루예요.
+혼자 끙끙 앓던 문제도 메모장에 핵심 키워드만 간단히 적어보면 의외로 쉽게 실마리가 보입니다.
+친구와 서로 배운 내용을 짧게 설명해 주거나 정보를 나누면 머릿속에 훨씬 오래 남을 거예요.
+주변 속도와 비교하지 말고 ${n}님만의 차분한 리듬을 끝까지 믿고 걸어가 보세요.
+오늘 기울인 성실한 노력이 머지않아 기분 좋은 결과로 이어질 것입니다.`
+          ]
+        },
+        health: {
+          icon: '🌿',
+          title: `${n}님의 오늘 건강운`,
+          texts: [
+            `${n}님, 오늘은 몸과 마음의 신호에 다정하게 귀를 기울이면 컨디션이 쑥 올라가는 날이에요.
+큰 무리는 없지만, 오래 앉아 있거나 스마트폰을 오래 보면 목과 어깨가 살짝 뻐근해질 수 있습니다.
+틈틈이 따뜻한 물이나 허브차를 한 잔씩 마시며 몸속에 포근한 온기를 채워주세요.
+점심시간이나 저녁 무렵에 15분 정도 가볍게 걸으면 머릿속 피로까지 맑게 씻겨 내려갑니다.
+오늘 밤에는 스마트폰을 조금 일찍 내려놓고 포근한 이불 속에서 꿀잠을 청해 보세요.`,
+            `${n}님, 오늘은 잔잔한 휴식과 규칙적인 리듬이 큰 활력을 불어넣어 주는 하루예요.
+무리하게 에너지를 쏟기보다는 평소보다 조금 여유 있게 움직이며 호흡을 고르는 것이 좋습니다.
+신선한 제철 과일이나 따뜻한 국물 요리를 챙겨 드시면 속이 편안해지고 기운이 한결 나아질 거예요.
+가벼운 기지개와 심호흡만으로도 굳어 있던 긴장이 부드럽게 풀리는 것을 느낄 수 있습니다.
+${n}님 스스로를 아끼고 보살피는 시간이 내일을 위한 가장 든든한 보약이 됩니다.`
+          ]
+        },
+        events: {
+          icon: '🎁',
+          title: `${n}님에게 오늘 생길 수도 있는 일들`,
+          texts: [
+            `${n}님, 오늘 하루 중에는 입가에 미소가 번지는 작고 기분 좋은 우연들이 기다리고 있어요.
+오랜만에 연락이 닿은 반가운 친구에게서 안부 메시지가 오거나, 좋아하는 노래가 우연히 흘러나올 수 있습니다.
+길에서 귀여운 강아지나 고양이를 마주쳐 잠시 마음이 사르르 녹는 순간이 찾아올지도 몰라요.
+계획에 없던 작은 간식 선물을 받거나, 칭찬 한마디를 듣고 하루 종일 기분이 포근해질 수 있습니다.
+사소한 행운들을 기쁘게 맞이할수록 더 좋은 일들이 ${n}님 곁으로 모여들 거예요.`,
+            `${n}님, 오늘은 일상 속 작은 틈새에서 반짝이는 영감과 기분 전환이 찾아오는 날이에요.
+평소 가던 길과 조금 다른 골목으로 걸어갔다가 아늑한 카페나 예쁜 풍경을 발견할 수 있습니다.
+고민하던 일에 대해 주변 사람의 무심한 한마디 속에서 뜻밖의 힌트를 얻게 될 가능성도 커요.
+예상보다 일정이 일찍 마무리되어 ${n}님만을 위한 달콤한 자유 시간이 생길 수도 있습니다.
+오늘 찾아오는 작은 변화들을 설레는 마음으로 가볍게 즐겨보세요.`
+          ]
+        },
+        items: {
+          icon: '🧸',
+          title: `${n}님에게 오늘 있으면 좋은 물건들`,
+          texts: [
+            `${n}님, 오늘 하루를 더욱 포근하고 행운 가득하게 만들어 줄 추천 아이템들을 알려드릴게요.
+첫 번째는 **좋아하는 향의 핸드크림이나 립밤**이에요. 손끝에서 은은하게 퍼지는 좋은 향기가 긴장을 부드럽게 풀어줍니다.
+두 번째는 **파스텔 톤의 메모지나 예쁜 펜**으로, 문득 떠오르는 좋은 생각들을 적어두면 행운이 배가 돼요.
+세 번째는 **따뜻한 음료를 담을 수 있는 텀블러**입니다. 수분을 챙길 때마다 기분 좋은 에너지가 충전될 거예요.
+가방 속에 쏙 넣어두고 오늘 하루 든든한 행운 부적처럼 함께해 보세요.`,
+            `${n}님, 오늘 ${z}의 맑은 기운을 한층 높여줄 다정한 행운 아이템들을 준비해 보았어요.
+첫 번째는 **부드러운 손수건이나 포근한 머플러(가디건)**예요. 체온을 포근하게 지켜주면서 안정감을 더해줍니다.
+두 번째는 **이어폰**으로, 이동하는 길에 잔잔한 음악을 들으면 나만의 아늑한 공간이 만들어져요.
+세 번째는 **달콤한 초콜릿이나 젤리 한 알**입니다. 살짝 출출하거나 기분 전환이 필요할 때 즉각적인 미소를 선물해 줄 거예요.
+작은 소품 하나가 오늘 ${n}님의 하루를 훨씬 더 사랑스럽게 만들어 줄 것입니다.`
+          ]
+        },
+        feedback: {
+          icon: '💌',
+          title: `${n}님을 위한 오늘의 다정한 피드백`,
+          texts: [
+            `${n}님, 오늘 더 행복한 하루를 보내기 위해 **이런 행동은 잠시 삼가주세요!**
+첫째, **아직 일어나지 않은 일을 미리 걱정하며 밤늦게까지 고민하는 것**은 오늘만큼은 쉬어가기로 해요.
+둘째, **다른 사람의 속도와 내 모습을 비교하며 스스로를 작게 만드는 말**은 마음속에서도 금지입니다.
+셋째, **배가 고픈데도 할 일을 먼저 끝내겠다며 끼니를 거르는 행동**은 컨디션을 쉽게 지치게 만들 수 있어요.
+오늘은 완벽함보다 편안함을 선택하며 ${n}님 자신에게 가장 다정한 친구가 되어주세요.`,
+            `${n}님, 오늘 하루 마음이 지치지 않도록 **이런 행동은 살짝 조심해 주세요!**
+첫째, **기분이 살짝 가라앉았을 때 휴대폰만 오래 들여다보며 에너지를 소모하는 것**은 피하는 게 좋아요.
+둘째, **마음에 없는 부탁을 거절하지 못해 혼자 무리하게 일정을 떠안는 행동**은 잠시 멈춰 주세요.
+셋째, **사소한 실수 하나를 떠올리며 스스로를 자꾸 다그치는 생각**은 구름처럼 흘려보내기로 해요.
+조금 느리고 서툴러도 괜찮으니, 오늘 ${n}님이 걸어간 모든 발걸음을 따뜻하게 토닥여 주세요.`
+          ]
+        }
+      };
+
+      const item = contentMap[category];
+      document.getElementById('detail-icon').textContent = item.icon;
+      document.getElementById('detail-title').textContent = item.title;
+      document.getElementById('detail-text').textContent = item.texts[idx];
+      showScreen('screen-detail');
+    }
+  </script>
+</body>
+</html>
